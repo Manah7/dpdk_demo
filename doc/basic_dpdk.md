@@ -1,6 +1,11 @@
 ## DPDK tuto simple
 L'idée est simplement de faire fonctionner DPDK dans une configuration simple, sans se préoccuper des configuration des drivers. Dans cet exemple, on utilise directement `testpmd` avec des *virtual devices* sur des interfaces physiques.
 
+### Installation des sources
+```bash
+meson -Dexamples=all build && ninja -C build
+```
+
 ### Exemple simple passant par la stack Linux
 ```bash
 echo 2048 > /proc/sys/vm/nr_hugepages
