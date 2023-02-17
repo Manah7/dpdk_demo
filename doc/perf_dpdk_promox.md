@@ -1,5 +1,5 @@
 ## Performance de DPDK sous Proxmox
-### Performance des vSwitchs :
+### Performance des vSwitchs 
 `iperf3` entre dpdk-0 et dpdk-1 :
 ```
 root@dpdk-0:~# iperf3 -c 192.168.0.3
@@ -117,7 +117,7 @@ iperf Done.
 ```
 Avec la configuration actuelle, `iptables` est plus rapide avec des paquets standards -_-
 
-### Tentative de meilleurs performances
+### Tentative de meilleurs performances avec configuration spécifique
 ```
 ## AVEC DPDK
 # iperf3 -c 192.168.0.2 M128 -l64 

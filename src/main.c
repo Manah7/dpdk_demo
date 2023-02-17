@@ -3,6 +3,7 @@
 #include <inttypes.h>
 #include <rte_eal.h>
 #include <rte_ethdev.h>
+#include <rte_ether.h>
 #include <rte_cycles.h>
 #include <rte_lcore.h>
 #include <rte_mbuf.h>
@@ -21,15 +22,53 @@
     Pour tester sur le banc d'essais, utilisez remote_build.sh.
 */
 
-int DEBUG = 1;
+int DEBUG = 0;
 
 /*
- * Fonction d'affichage des informations de debug
+ * Fonctions d'affichage des informations de debug
  */
-void debug(char * msg)
+char * debug_ip(unsigned int ip)
 {
-    if (DEBUG)
-        printf("[!] %s\n", msg);
+    unsigned char bytes[4];
+    char * s_ip = malloc(4*3+4);
+
+    bytes[0] = ip & 0xFF;
+    bytes[1] = (ip >> 8) & 0xFF;
+    bytes[2] = (ip >> 16) & 0xFF;
+    bytes[3] = (ip >> 24) & 0xFF;   
+    sprintf(s_ip, "%d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]);  
+
+    return s_ip; 
+}
+char * debug_mac(struct rte_ether_addr addr){
+    char * s_mac = malloc(6*2+6);
+    sprintf(s_mac, "%02X:%02X:%02X:%02X:%02X:%02X", 
+        addr.addr_bytes[0],
+        addr.addr_bytes[1],
+        addr.addr_bytes[2],
+        addr.addr_bytes[3],
+        addr.addr_bytes[4],
+        addr.addr_bytes[5]);
+    return s_mac;
+}
+
+
+/* From http://www.rfc-editor.org/rfc/rfc1812.txt section 5.2.2 */
+static inline int is_valid_ipv4_pkt(struct rte_ipv4_hdr *pkt, uint32_t ll)
+{
+	if (ll < sizeof(struct rte_ipv4_hdr))
+		return -1;
+
+	if (((pkt->version_ihl) >> 4) != 4)
+		return -3;
+
+	if ((pkt->version_ihl & 0xf) < 5)
+		return -4;
+
+	if (rte_cpu_to_be_16(pkt->total_length) < sizeof(struct rte_ipv4_hdr))
+		return -5;
+
+	return 0;
 }
 
 
@@ -130,11 +169,8 @@ static __rte_noreturn void lcore_main(void)
 	 */
 	RTE_ETH_FOREACH_DEV(port)
 		if (rte_eth_dev_socket_id(port) >= 0 &&
-				rte_eth_dev_socket_id(port) !=
-						(int)rte_socket_id())
-			printf("WARNING, port %u is on remote NUMA node to "
-					"polling thread.\n\tPerformance will "
-					"not be optimal.\n", port);
+				rte_eth_dev_socket_id(port) != (int)rte_socket_id())
+			printf("[!] Port %u : conf. NUMA invalide.\n", port);
 
 	printf("\nCore %u forwarding packets. [Ctrl+C to quit]\n",
 			rte_lcore_id());
@@ -157,12 +193,36 @@ static __rte_noreturn void lcore_main(void)
             
             /////////////////ZONE DE TRAVAIL/////////////////
 
+            /* Boucle sur les paquets du burst */
+            for (int pkt_id = 0; pkt_id < nb_rx; ++pkt_id){
+                /* Header MAC */
+                struct rte_ether_hdr *mac_hdr = rte_pktmbuf_mtod(bufs[pkt_id], 
+                    struct rte_ether_hdr *);
+                
+                /* Header IP */ 
+                struct rte_ipv4_hdr *ipv4_hdr = rte_pktmbuf_mtod_offset(bufs[pkt_id], 
+                    struct rte_ipv4_hdr *, sizeof(struct rte_ether_hdr));
 
-            debug("Paquet en transition.");
-
-            if (RTE_ETH_IS_IPV4_HDR(bufs[0]->packet_type))
-                debug("    Paquet IPV4 !");
-
+                /* Paquet IP valide */
+                if (is_valid_ipv4_pkt(ipv4_hdr, bufs[pkt_id]->pkt_len) < 0){
+                    if (unlikely(DEBUG)){
+                        printf(" [%lu] ? Paquet UKN : %s --> %s\n",
+                            (unsigned long)time(NULL),
+                            debug_mac(mac_hdr->src_addr), 
+                            debug_mac(mac_hdr->dst_addr));
+                    }
+                }
+                else {
+                    if (unlikely(DEBUG)){
+                        printf(" [%lu] ! Paquet IPv4 : %s --> %s (%s --> %s)\n",
+                            (unsigned long)time(NULL), 
+                            debug_ip(ipv4_hdr->src_addr),
+                            debug_ip(ipv4_hdr->dst_addr),
+                            debug_mac(mac_hdr->src_addr), 
+                            debug_mac(mac_hdr->dst_addr));
+                    }
+                }
+            }
 
             /////////////////ZONE DE TRAVAIL/////////////////
 
@@ -182,6 +242,8 @@ static __rte_noreturn void lcore_main(void)
 
 
 /*
+ * Point d'entrée, init. & args., copiée d'un exemple.
+ *
  * The main function, which does initialization and calls the per-lcore
  * functions.
  */
