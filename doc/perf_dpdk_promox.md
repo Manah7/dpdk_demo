@@ -163,3 +163,22 @@ Connecting to host 192.168.1.1, port 5201
 
 iperf Done.
 ```
+
+### Essais en fonction des drivers et autres améliorations
+Configuration de Hugepages dans Proxmox (`/etc/pve/qemu-server/101.conf`) (inutile) :
+```
+hugepages: 1024
+```
+
+Test des différents adaptateurs, avec Proxmox / *VMWare* :
+* `e1000` : 1.08 Gbits/sec / *4.74 Gbits/sec*
+* `e1000e` : N/A / *4.07 Gbits/sec*
+* `virtio` : 4.75 Gbits/sec / *N/A*
+* `vmxnet3` : 1.07 Gbits/sec / ***5.50 Gbits/sec***
+
+Liste des adaptateurs n'ayant pas fonctionnés : `rtl8139` (Proxmox), `vmxnet2` (ESXi), `Relais SR-IOV` (ESXi).
+
+* **Meilleur résultat obtenu AVEC DPDK :** 5.50 Gbits/sec (VMWare) et 4.75 Gbits/sec (Proxmox) 
+* **Meilleur résultat obtenu SANS DPDK :** 6.66 Gbits/sec (VMWare) et 9.91 Gbits/sec (Proxmox)
+
+Dans le premier cas, la différence de performance constatée est probablement due aux machines hôtes.

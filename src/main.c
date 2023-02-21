@@ -22,7 +22,8 @@
     Pour tester sur le banc d'essais, utilisez remote_build.sh.
 */
 
-int DEBUG = 0;
+/* Affiche des informations très verbeuses sur chaque paquet */
+#define DEBUG 0 
 
 /*
  * Fonctions d'affichage des informations de debug
@@ -36,7 +37,7 @@ char * debug_ip(unsigned int ip)
     bytes[1] = (ip >> 8) & 0xFF;
     bytes[2] = (ip >> 16) & 0xFF;
     bytes[3] = (ip >> 24) & 0xFF;   
-    sprintf(s_ip, "%d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]);  
+    sprintf(s_ip, "%d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]); 
 
     return s_ip; 
 }
@@ -196,17 +197,20 @@ static __rte_noreturn void lcore_main(void)
             /* Boucle sur les paquets du burst */
             for (int pkt_id = 0; pkt_id < nb_rx; ++pkt_id){
                 /* Header MAC */
-                struct rte_ether_hdr *mac_hdr = rte_pktmbuf_mtod(bufs[pkt_id], 
+                struct rte_ether_hdr *mac_hdr = 
+                    rte_pktmbuf_mtod(bufs[pkt_id], 
                     struct rte_ether_hdr *);
                 
                 /* Header IP */ 
-                struct rte_ipv4_hdr *ipv4_hdr = rte_pktmbuf_mtod_offset(bufs[pkt_id], 
-                    struct rte_ipv4_hdr *, sizeof(struct rte_ether_hdr));
+                struct rte_ipv4_hdr *ipv4_hdr = 
+                    rte_pktmbuf_mtod_offset(bufs[pkt_id], 
+                    struct rte_ipv4_hdr *, 
+                    sizeof(struct rte_ether_hdr));
 
                 /* Paquet IP valide */
                 if (is_valid_ipv4_pkt(ipv4_hdr, bufs[pkt_id]->pkt_len) < 0){
                     if (unlikely(DEBUG)){
-                        printf(" [%lu] ? Paquet UKN : %s --> %s\n",
+                        printf(" [%lu] Paquet UKN : %s --> %s\n",
                             (unsigned long)time(NULL),
                             debug_mac(mac_hdr->src_addr), 
                             debug_mac(mac_hdr->dst_addr));
@@ -214,7 +218,7 @@ static __rte_noreturn void lcore_main(void)
                 }
                 else {
                     if (unlikely(DEBUG)){
-                        printf(" [%lu] ! Paquet IPv4 : %s --> %s (%s --> %s)\n",
+                        printf(" [%lu] Paquet IPv4 : %s --> %s (%s --> %s)\n",
                             (unsigned long)time(NULL), 
                             debug_ip(ipv4_hdr->src_addr),
                             debug_ip(ipv4_hdr->dst_addr),

@@ -4,6 +4,8 @@ Nous avons essayé de réaliser plusieurs bancs d'essais virtuels sous différen
 ![../img/schema_virt_dpdk.png](../img/schema_virt_dpdk.png)
 
 ### VMWare (Useless)
+**Cette section est obsolète, ayant à présent réussi à configurer les VM et le réseau. (Voir section Debug.)**
+
 Bien que le déploiement des VM et la mise en place des vSwitch a été facile, la configuration de DPDK des interfaces `vmxnet3` de VMWare n'a pas permit d'utiliser DPDK correctement, en particulier DPDK ne semblait pas recevoir certains paquets, malgré le mode promiscous du switch.
 
 Commandes utilisées pour le debug :
@@ -17,6 +19,9 @@ make
 dpdk-testpmd -c7 -n 4 -- -i --nb-cores=2 --nb-ports=2 --total-num-mbufs=2048
 ```
 
+#### Debug 
+Un peu de magie noire, réactiver l'iommu dans grub cmdline semble avoir aidé. Le script utilisé est le même que dans le Proxmox ci-dessous, avec l'ajout de la ligne : `echo 1024 > /proc/sys/vm/nr_hugepages` (ou voir [setup_esxi.sh](setup_esxi.sh)).
+
 ### Proxmox
 J'ai eu plus de succès avec Proxmox, même si les performances restent inférieures qu'`iptables`. Pour la configuration, outre l'installation des DPDK sur dpdk-1, j'utilise un script similaire à celui de [kvm_l2fwd.md](kvm_l2fwd.md) :
 ```bash
@@ -25,6 +30,7 @@ J'ai eu plus de succès avec Proxmox, même si les performances restent inférie
 set -v
 
 echo 1 > /sys/module/vfio/parameters/enable_unsafe_noiommu_mode
+# echo 1024 > /proc/sys/vm/nr_hugepages
 modprobe vfio-pci
 modprobe vfio enable_unsafe_noiommu_mode=1
 
