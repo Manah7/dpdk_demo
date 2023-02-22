@@ -1,8 +1,8 @@
 # binary name
 APP = main
 
-# all source are stored in SRCS-y
-SRCS-y := main.c
+# all source are stored in SRCS
+SRCS := debug.c init.c main.c
 
 PKGCONF ?= pkg-config
 
@@ -33,11 +33,11 @@ endif
 
 CFLAGS += -DALLOW_EXPERIMENTAL_API
 
-build/$(APP)-shared: $(SRCS-y) Makefile $(PC_FILE) | build
-	$(CC) $(CFLAGS) $(SRCS-y) -o $@ $(LDFLAGS) $(LDFLAGS_SHARED)
+build/$(APP)-shared: $(SRCS) Makefile $(PC_FILE) | build
+	$(CC) $(CFLAGS) $(SRCS) -o $@ $(LDFLAGS) $(LDFLAGS_SHARED)
 
-build/$(APP)-static: $(SRCS-y) Makefile $(PC_FILE) | build
-	$(CC) $(CFLAGS) $(SRCS-y) -o $@ $(LDFLAGS) $(LDFLAGS_STATIC)
+build/$(APP)-static: $(SRCS) Makefile $(PC_FILE) | build
+	$(CC) $(CFLAGS) $(SRCS) -o $@ $(LDFLAGS) $(LDFLAGS_STATIC)
 
 build:
 	@mkdir -p $@
