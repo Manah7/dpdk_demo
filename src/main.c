@@ -24,34 +24,15 @@
 */
 
 /* Affiche des informations très verbeuses sur chaque paquet */
-#define DEBUG 0
-
-
-/* From http://www.rfc-editor.org/rfc/rfc1812.txt section 5.2.2 
- * Inutilsé pour le moment */
-static inline int is_valid_ipv4_pkt(struct rte_ipv4_hdr *pkt, uint32_t ll)
-{
-    if (ll < sizeof(struct rte_ipv4_hdr))
-        return -1;
-
-    if (((pkt->version_ihl) >> 4) != 4)
-        return -3;
-
-    if ((pkt->version_ihl & 0xf) < 5)
-        return -4;
-
-    if (rte_cpu_to_be_16(pkt->total_length) < sizeof(struct rte_ipv4_hdr))
-        return -5;
-
-    return 0;
-}
+#define DEBUG 1
 
 
 /* Libère la mémoire d'un paquet donné */
-void drop(struct rte_mbuf * pkt){
+int drop(struct rte_mbuf * pkt){
     rte_pktmbuf_free(pkt);
     if (unlikely(DEBUG))
         printf("\t...dropped...\n");
+    return 1;
 }
 
 
@@ -107,14 +88,25 @@ static __rte_noreturn void lcore_main(
 
                     if (unlikely(DEBUG)) {print_debug_ip(eth_hdr, ipv4_hdr);}
 
+                    /* Filtrage du paquet IPv4 en fonction des tables. */
+                    int dropped = 0;
+                    for (int i = 0; i < nb_src_blk; i++){
+                        if (unlikely(ipv4_hdr->src_addr == deny_ip_src[i]))
+                             dropped = drop(bufs_rx[pkt_id]);
+                             break;
+                    }
 
-                    // TODO : Implémenter ici les fonction de filtrage
-                    // avec deny_ip_src et deny_ip_dst
+                    for (int i = 0; i < nb_dst_blk; i++){
+                        if (unlikely(ipv4_hdr->dst_addr == deny_ip_dst[i]))
+                             dropped = drop(bufs_rx[pkt_id]);
+                             break;
+                    }
 
-
-                    /* On garde le paquet */
-                    bufs_tx[nb_rt] = bufs_rx[pkt_id];
-                    nb_rt++;
+                    /* On garde le paquet si non droppé */
+                    if (likely(!dropped)){
+                        bufs_tx[nb_rt] = bufs_rx[pkt_id];
+                        nb_rt++;
+                    }
                 } 
                 /* IPv6 */
                 else if (unlikely(eth_hdr->ether_type 
@@ -145,6 +137,8 @@ static __rte_noreturn void lcore_main(
 
 /* Point d'entrée, init. & args. */
 int main(int argc, char *argv[]){
+    // TODO : Ajouter la selection du filename via arguments
+
     if (DEBUG) {printf("DEBUG mode: will very (very) verbose\n\n");}
 
     /* Initialise l'EAL et RTE */
