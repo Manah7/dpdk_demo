@@ -114,8 +114,18 @@ int rte_init(int argc, char * argv[]){
             rte_exit(EXIT_FAILURE, "Cannot init port %"PRIu16 "\n",
                     portid);
 
+    /* Vérification prise d'un exemple : Check that the port is on the same 
+     * NUMA node as the polling thread for best performance. */
+    uint16_t port;
+    RTE_ETH_FOREACH_DEV(port)
+        if (rte_eth_dev_socket_id(port) >= 0 &&
+                rte_eth_dev_socket_id(port) != (int)rte_socket_id())
+            printf("[!] Port %u : conf. NUMA invalide.\n", port);
+
     if (rte_lcore_count() > 1)
         printf("\nWARNING: Too many lcores enabled. Only 1 used.\n");
     
+    printf("EAL: Init. done.\n\n");
+
     return 0;
 }

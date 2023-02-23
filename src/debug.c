@@ -44,3 +44,24 @@ void print_debug_ip(struct rte_ether_hdr *mac_hdr, struct rte_ipv4_hdr *ipv4_hdr
         debug_ip(ipv4_hdr->src_addr),
         debug_ip(ipv4_hdr->dst_addr));
 }
+
+void print_debug_rules(int nb_src_blk,
+        rte_be32_t *deny_ip_src,
+        int nb_dst_blk,
+        rte_be32_t *deny_ip_dst)
+{
+    printf("\n-------------------------\n");
+    printf("%d IPs bloquées en sources, %d en destination.\n", 
+        nb_src_blk, nb_dst_blk);
+
+    printf("Liste des IP bloquées en sources :\n");
+    for (int i = 0; i < nb_src_blk; i++){
+        printf("\t%s\n", debug_ip(deny_ip_src[i]));
+    }
+
+    printf("Liste des IP bloquées en destination :\n");
+    for (int i = 0; i < nb_dst_blk; i++){
+        printf("\t%s\n", debug_ip(deny_ip_dst[i]));
+    }
+    printf("-------------------------\n\n");
+}

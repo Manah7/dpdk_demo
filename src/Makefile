@@ -2,7 +2,7 @@
 APP = main
 
 # all source are stored in SRCS
-SRCS := debug.c init.c main.c
+SRCS := parse.c debug.c init.c main.c
 
 PKGCONF ?= pkg-config
 
