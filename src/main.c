@@ -24,7 +24,7 @@
 */
 
 /* Affiche des informations très verbeuses sur chaque paquet */
-#define DEBUG 1
+#define DEBUG 0
 
 
 /* Libère la mémoire d'un paquet donné */
@@ -50,8 +50,8 @@ static __rte_noreturn void lcore_main(
     uint16_t port;
     for (;;) {
         RTE_ETH_FOREACH_DEV(port) {
-            struct rte_mbuf *bufs_tx[BURST_SIZE];
-            struct rte_mbuf *bufs_rx[BURST_SIZE];
+            struct rte_mbuf *bufs_tx[BURST_SIZE]; // Paquets émits (non filtrés)
+            struct rte_mbuf *bufs_rx[BURST_SIZE]; // Paquets reçus
 
             /* Get burst of RX packets, from first port of pair. */
             uint16_t nb_rt = 0;
@@ -139,16 +139,18 @@ static __rte_noreturn void lcore_main(
 int main(int argc, char *argv[]){
     // TODO : Ajouter la selection du filename via arguments
 
+    /* On prévient de mode DEBUG : forte reduction des performances. */
     if (DEBUG) {printf("DEBUG mode: will very (very) verbose\n\n");}
 
     /* Initialise l'EAL et RTE */
     rte_init(argc, argv);
 
     /* Parse config file */
-    char * filename = "../rules.cfg";
-    int nb_src_blk = 0;
-    int nb_dst_blk = 0;
-    rte_be32_t *deny_ip_src, *deny_ip_dst;
+    char * filename = "../rules.cfg";       // Fichier de configuration lu
+    int nb_src_blk = 0;                     // Nombre de règles blk src
+    int nb_dst_blk = 0;                     // Nombre de règles blk dst
+    rte_be32_t *deny_ip_src, *deny_ip_dst;  // Table de blocage
+
     if (parse_config(filename, 
             &nb_src_blk, 
             &deny_ip_src, 

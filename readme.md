@@ -14,10 +14,19 @@ Dans cette section, nous détaillons fortement les étapes suivies, notamment po
 ### DPDK dans une infrastructure virtuelle
 Dans cette section, nous présentons la mise en place de DPDK sur un banc d'essai virtuel :
 * Banc d'essais sur hyperviseur : [doc/hyperviseur_dpdk.md](doc/hyperviseur_dpdk.md)
-* Détails des performances sur Proxmox (*désuet*) : [doc/perf_dpdk_promox.md](doc/perf_dpdk_promox.md)
+* Détails des performances sur Proxmox : [doc/perf_dpdk_promox.md](doc/perf_dpdk_promox.md)
 
 ## Implémentation du module en C
-Voir le [répertoire src/](src/).
+Nous avons implémenté un module DPDK réalisant du filtrage IPv4 simple basé sur l'adresse IP source ou destination d'un paquet. Ce module présente des performances intéressantes que nous essayerons d'évaluer. La configuration du filtrage s'effectue dans un fichier `rules.cfg` dont voici un exemple :
+```
+# Exemple de fichier de configuration
+block src 244.174.221.178
+
+block dst 192.168.0.3
+block dst 192.168.0.4
+```
+
+Pour plus d'information, voir le [répertoire src/](src/).
 
 ## Informations et contact
 Voir [manah.fr](https://manah.fr).
