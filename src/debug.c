@@ -28,18 +28,19 @@ char * debug_mac(struct rte_ether_addr addr){
     return s_mac;
 }
 
-void print_debug_mac(struct rte_ether_hdr *mac_hdr){
-    printf(" [%lu] Paquet UKN : %s --> %s\n",
+void print_debug_mac(struct rte_ether_hdr *mac_hdr, char * type){
+    printf(" [%lu][%s] %s --> %s\n",
         (unsigned long)time(NULL),
+        type,
         debug_mac(mac_hdr->src_addr), 
         debug_mac(mac_hdr->dst_addr));
 }
 
 void print_debug_ip(struct rte_ether_hdr *mac_hdr, struct rte_ipv4_hdr *ipv4_hdr){
-    printf(" [%lu] Paquet IPv4 : %s --> %s (%s --> %s)\n",
+    printf(" [%lu][IP4] : %s --> %s (%s --> %s)\n",
         (unsigned long)time(NULL), 
-        debug_ip(ipv4_hdr->src_addr),
-        debug_ip(ipv4_hdr->dst_addr),
         debug_mac(mac_hdr->src_addr), 
-        debug_mac(mac_hdr->dst_addr));
+        debug_mac(mac_hdr->dst_addr),
+        debug_ip(ipv4_hdr->src_addr),
+        debug_ip(ipv4_hdr->dst_addr));
 }

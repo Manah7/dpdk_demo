@@ -21,10 +21,11 @@
 */
 
 /* Affiche des informations très verbeuses sur chaque paquet */
-#define DEBUG 0
+#define DEBUG 1
 
 
-/* From http://www.rfc-editor.org/rfc/rfc1812.txt section 5.2.2 */
+/* From http://www.rfc-editor.org/rfc/rfc1812.txt section 5.2.2 
+ * Inutilsé pour le moment */
 static inline int is_valid_ipv4_pkt(struct rte_ipv4_hdr *pkt, uint32_t ll)
 {
     if (ll < sizeof(struct rte_ipv4_hdr))
@@ -43,6 +44,20 @@ static inline int is_valid_ipv4_pkt(struct rte_ipv4_hdr *pkt, uint32_t ll)
 }
 
 
+/* Parse a given config. file */
+int parse_config(char * filename){
+    // TODO
+}
+
+
+/* Libère la mémoire d'un paquet donné */
+void drop(struct rte_mbuf * pkt){
+    rte_pktmbuf_free(pkt);
+    if (unlikely(DEBUG))
+        printf("\t...dropped...\n");
+}
+
+
 /* Boucle principale lcore_main */
 static __rte_noreturn void lcore_main(void)
 {
@@ -55,8 +70,7 @@ static __rte_noreturn void lcore_main(void)
                 rte_eth_dev_socket_id(port) != (int)rte_socket_id())
             printf("[!] Port %u : conf. NUMA invalide.\n", port);
 
-    if (DEBUG)
-        printf("DEBUG mode: will very (very) verbose\n");
+    if (DEBUG) {printf("DEBUG mode: will very (very) verbose\n");}
     printf("\nCore %u forwarding packets [Ctrl+C to quit]\n", rte_lcore_id());
 
     /* Main work of application loop.*/
@@ -76,30 +90,41 @@ static __rte_noreturn void lcore_main(void)
             /* Boucle sur les paquets du burst */
             for (int pkt_id = 0; pkt_id < nb_rx; ++pkt_id){
                 /* Header MAC */
-                struct rte_ether_hdr *mac_hdr = 
+                struct rte_ether_hdr *eth_hdr = 
                     rte_pktmbuf_mtod(bufs_rx[pkt_id], 
                     struct rte_ether_hdr *);
-                
-                /* Header IP */ 
-                struct rte_ipv4_hdr *ipv4_hdr = 
+
+                /* Identification du type de paquet basé sur l'header */
+                /* ARP */
+                if (eth_hdr->ether_type == rte_cpu_to_be_16(RTE_ETHER_TYPE_ARP)){
+                    if (unlikely(DEBUG)) {print_debug_mac(eth_hdr, "ARP");}
+
+                    /* On garde le paquet */
+                    bufs_tx[nb_rt] = bufs_rx[pkt_id];
+                    nb_rt++;
+                }
+                /* IPv4 */
+                else if (eth_hdr->ether_type == rte_cpu_to_be_16(RTE_ETHER_TYPE_IPV4)){
+                    struct rte_ipv4_hdr *ipv4_hdr = 
                     rte_pktmbuf_mtod_offset(bufs_rx[pkt_id], 
                     struct rte_ipv4_hdr *, 
                     sizeof(struct rte_ether_hdr));
 
-                /* Paquet IP valide */
-                if (unlikely(DEBUG) && is_valid_ipv4_pkt(ipv4_hdr, 
-                        bufs_rx[pkt_id]->pkt_len) < 0)
-                    if (unlikely(DEBUG)) {print_debug_mac(mac_hdr);}
-                else
-                    if (unlikely(DEBUG)) {print_debug_ip(mac_hdr, ipv4_hdr);}
-
-                /* On regarde si on garde le paquet ou non. */
-                if (1){
+                    /* On garde le paquet */
                     bufs_tx[nb_rt] = bufs_rx[pkt_id];
                     nb_rt++;
-                } else {
-                    if (unlikely(DEBUG))
-                        printf("\t...dropped...\n");
+
+                     if (unlikely(DEBUG)) {print_debug_ip(eth_hdr, ipv4_hdr);}
+                } 
+                /* IPv6 */
+                else if (eth_hdr->ether_type == rte_cpu_to_be_16(RTE_ETHER_TYPE_IPV6)){
+                    if (unlikely(DEBUG)) {print_debug_mac(eth_hdr, "IP6");}
+                    drop(bufs_rx[pkt_id]);
+                }
+                /* Non identifié */
+                else {
+                    if (unlikely(DEBUG)) {print_debug_mac(eth_hdr, "UKN");}
+                    drop(bufs_rx[pkt_id]);
                 }
             } /* Fin boucle sur les paquets du burst */
 
@@ -112,9 +137,6 @@ static __rte_noreturn void lcore_main(void)
                 for (uint16_t buf = nb_tx; buf < nb_rt; ++buf)
                     rte_pktmbuf_free(bufs_tx[buf]);
             }
-
-            // TODO 
-            // Free bufs_rx
         }
     }
 }
@@ -124,6 +146,9 @@ static __rte_noreturn void lcore_main(void)
 int main(int argc, char *argv[]){
     /* Initialise l'EAL et RTE */
     rte_init(argc, argv);
+
+    /* Parse config file */
+    parse_config("rules.cfg"); // TODO
 
     /* Boucle principale, sur un coeur. Un seul appel depuis le main. */
     lcore_main();

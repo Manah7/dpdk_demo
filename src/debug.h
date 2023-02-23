@@ -5,7 +5,7 @@
 #include <rte_ether.h>
 
 /* Affiche des informations pour un paquet L2 */
-void print_debug_mac(struct rte_ether_hdr *mac_hdr);
+void print_debug_mac(struct rte_ether_hdr *mac_hdr, char * type);
 
 /* Affiche des informations pour un paquet L3 */
 void print_debug_ip(struct rte_ether_hdr *mac_hdr, struct rte_ipv4_hdr *ipv4_hdr);
