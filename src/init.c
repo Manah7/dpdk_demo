@@ -81,18 +81,18 @@ int port_init(uint16_t port, struct rte_mempool * mbuf_pool){
     return 0;
 }
 
-int rte_init(int argc, char * argv[]){
+int rte_init(int * p_argc, char ** p_argv[]){
     struct rte_mempool *mbuf_pool;
     unsigned nb_ports;
     uint16_t portid;
 
     /* Initializion the Environment Abstraction Layer (EAL). */
-    int ret = rte_eal_init(argc, argv);
+    int ret = rte_eal_init(*p_argc, *p_argv);
     if (ret < 0)
         rte_exit(EXIT_FAILURE, "Error with EAL initialization\n");
 
-    argc -= ret;
-    argv += ret;
+    *p_argc -= ret;
+    *p_argv += ret;
 
     /* Check that there is an even number of ports to send/receive on. */
     nb_ports = rte_eth_dev_count_avail();

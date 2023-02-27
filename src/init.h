@@ -13,6 +13,6 @@
 int port_init(uint16_t port, struct rte_mempool *mbuf_pool);
 
 /* Récupéré d'un exemple : Initialise l'EAL et parse les arguments */
-int rte_init(int argc, char * argv[]);
+int rte_init(int * argc, char ** argv[]);
 
 #endif

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
+#include <execinfo.h>
 
 #include <rte_eal.h>
 #include <rte_ethdev.h>
@@ -137,16 +138,27 @@ static __rte_noreturn void lcore_main(
 
 /* Point d'entrée, init. & args. */
 int main(int argc, char *argv[]){
-    // TODO : Ajouter la selection du filename via arguments
-
     /* On prévient de mode DEBUG : forte reduction des performances. */
     if (DEBUG) {printf("DEBUG mode: will very (very) verbose\n\n");}
 
     /* Initialise l'EAL et RTE */
-    rte_init(argc, argv);
+    rte_init(&argc, &argv);
+
+    /* Gestion des arguments locaux */
+    char * filename = "../rules.cfg";       // Fichier par défaut
+    if (argc == 1){
+        printf("Pas de fichier de configuration donné, utilisation de %s\n",
+            filename);
+    } else if (argc == 2){
+        filename = argv[1];
+        printf("Un fichier de configuration donné : %s\n",
+            filename);
+    } else {
+        printf("\nNombre invalide d'argument. Un argument attendu.\n");
+        return -2;
+    }
 
     /* Parse config file */
-    char * filename = "../rules.cfg";       // Fichier de configuration lu
     int nb_src_blk = 0;                     // Nombre de règles blk src
     int nb_dst_blk = 0;                     // Nombre de règles blk dst
     rte_be32_t *deny_ip_src, *deny_ip_dst;  // Table de blocage
