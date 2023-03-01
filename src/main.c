@@ -92,15 +92,18 @@ static __rte_noreturn void lcore_main(
                     /* Filtrage du paquet IPv4 en fonction des tables. */
                     int dropped = 0;
                     for (int i = 0; i < nb_src_blk; i++){
-                        if (unlikely(ipv4_hdr->src_addr == deny_ip_src[i]))
-                             dropped = drop(bufs_rx[pkt_id]);
-                             break;
+                        if (unlikely(ipv4_hdr->src_addr == deny_ip_src[i])){
+                            dropped = drop(bufs_rx[pkt_id]);
+                            break;
+                        }
                     }
 
+                    // TODO : Ne pas filtrer si déjà bloqué
                     for (int i = 0; i < nb_dst_blk; i++){
-                        if (unlikely(ipv4_hdr->dst_addr == deny_ip_dst[i]))
-                             dropped = drop(bufs_rx[pkt_id]);
-                             break;
+                        if (unlikely(ipv4_hdr->dst_addr == deny_ip_dst[i])){
+                            dropped = drop(bufs_rx[pkt_id]);
+                            break;
+                        }
                     }
 
                     /* On garde le paquet si non droppé */
