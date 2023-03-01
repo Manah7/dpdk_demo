@@ -16,6 +16,9 @@ Dans cette section, nous présentons la mise en place de DPDK sur un banc d'essa
 * Banc d'essais sur hyperviseur : [doc/hyperviseur_dpdk.md](doc/hyperviseur_dpdk.md)
 * Détails des performances sur Proxmox : [doc/perf_dpdk_promox.md](doc/perf_dpdk_promox.md)
 
+### DPDK sur un banc d'essais réel
+Résultats : [doc/perf_dpdk_reel.md](doc/perf_dpdk_reel.md).
+
 ## Implémentation du module en C
 Nous avons implémenté un module DPDK réalisant du filtrage IPv4 simple basé sur l'adresse IP source ou destination d'un paquet. Ce module présente des performances intéressantes que nous essayerons d'évaluer. La configuration du filtrage s'effectue dans un fichier `rules.cfg` dont voici un exemple :
 ```
@@ -24,6 +27,20 @@ block src 244.174.221.178
 
 block dst 192.168.0.3
 block dst 192.168.0.4
+```
+
+### Build
+Vous devez avoir installé DPDK (plusieurs exemples dans [/doc](/doc)), vous pouvez build avec :
+```bash
+make        # Meilleurs performances
+make debug  # Avec les informations de debug (lent)
+```
+Un [script](src/remote_build.sh) est également disponible pour build à distance sur un banc d'essais et/ou si vous n'avez pas d'installation de DPDK en local.
+
+### Lancer le programme
+Voir la [/doc](/doc) pour optimiser les performances. Lancer le programme avec :
+```bash
+./main -l2,3
 ```
 
 Pour plus d'information, voir le [répertoire src/](src/).

@@ -24,10 +24,10 @@ int parse_config(char * filename,
         rte_be32_t **deny_ip_src,
         int *nb_dst_blk,
         rte_be32_t **deny_ip_dst,
-        int DEBUG)
+        int debug)
 {
     /* Openning the file */
-    if (DEBUG){printf("Lecture du fichier : %s\n", filename);}
+    if (debug){printf("Lecture du fichier : %s\n", filename);}
     FILE * cfp = fopen(filename, "r");
     if (cfp == NULL) 
         return -1;
@@ -51,21 +51,21 @@ int parse_config(char * filename,
     char s_blk[16], s_ins[16], s_ip4[16];
     while (fgets(line, sizeof(line), cfp)) {
         if (line[0] == '#'){
-            if (DEBUG){printf("Commentaire ignoré.\n");}
+            if (debug){printf("Commentaire ignoré.\n");}
             continue;
         }
 
         /* Lecture de la ligne */
         sscanf(line, "%s %s %s\n", s_blk, s_ins, s_ip4);
-        if (DEBUG) {printf("Ligne : [%s][%s][%s]\n", s_blk, s_ins, s_ip4);}
+        if (debug) {printf("Ligne : [%s][%s][%s]\n", s_blk, s_ins, s_ip4);}
 
         /* Vérification du premier mot-clé "block" et du format de ligne */
         if (strcmp(s_blk, "block")){
             if (strlen(line) > 1){
-                if (DEBUG){printf("Ligne inv.ld : \"%s\"\n", line);}
+                if (debug){printf("Ligne inv.ld : \"%s\"\n", line);}
                 return -1;
             } else {
-                if (DEBUG){printf("Ligne vide ignorée.\n");}
+                if (debug){printf("Ligne vide ignorée.\n");}
                 continue;
             }
         }
@@ -78,7 +78,7 @@ int parse_config(char * filename,
             t_dst_blk[*nb_dst_blk] = ip_from_string(s_ip4);
             (*nb_dst_blk)++;
         } else {
-            if (DEBUG){printf("L. inv.ld (mot clé inv.ld) : \"%s\"\n", line);}
+            if (debug){printf("L. inv.ld (mot clé inv.ld) : \"%s\"\n", line);}
             return -1;
         }
 

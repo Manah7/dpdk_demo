@@ -13,6 +13,10 @@ endif
 
 all: shared
 .PHONY: shared static
+
+debug: $(SRCS) Makefile $(PC_FILE) | build
+	$(CC) $(CFLAGS) -DDEBUG=1 $(SRCS) -o build/main $(LDFLAGS) $(LDFLAGS_SHARED)
+
 shared: build/$(APP)-shared
 	ln -sf $(APP)-shared build/$(APP)
 static: build/$(APP)-static

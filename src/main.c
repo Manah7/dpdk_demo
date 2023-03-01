@@ -24,15 +24,13 @@
  * Pour tester sur le banc d'essais virtuel, utilisez remote_build.sh.
 */
 
-/* Affiche des informations très verbeuses sur chaque paquet */
-#define DEBUG 0
-
 
 /* Libère la mémoire d'un paquet donné */
 int drop(struct rte_mbuf * pkt){
     rte_pktmbuf_free(pkt);
-    if (unlikely(DEBUG))
-        printf("\t...dropped...\n");
+    #ifdef DEBUG
+    if (unlikely(DEBUG)) {printf("\t...dropped...\n");}
+    #endif
     return 1;
 }
 
@@ -73,7 +71,9 @@ static __rte_noreturn void lcore_main(
                 /* ARP */
                 if (unlikely(eth_hdr->ether_type 
                         == rte_cpu_to_be_16(RTE_ETHER_TYPE_ARP))){
+                    #ifdef DEBUG
                     if (unlikely(DEBUG)) {print_debug_mac(eth_hdr, "ARP");}
+                    #endif
 
                     /* On garde le paquet */
                     bufs_tx[nb_rt] = bufs_rx[pkt_id];
@@ -87,7 +87,9 @@ static __rte_noreturn void lcore_main(
                         struct rte_ipv4_hdr *, 
                         sizeof(struct rte_ether_hdr));
 
+                    #ifdef DEBUG
                     if (unlikely(DEBUG)) {print_debug_ip(eth_hdr, ipv4_hdr);}
+                    #endif
 
                     /* Filtrage du paquet IPv4 en fonction des tables. */
                     int dropped = 0;
@@ -115,12 +117,16 @@ static __rte_noreturn void lcore_main(
                 /* IPv6 */
                 else if (unlikely(eth_hdr->ether_type 
                         == rte_cpu_to_be_16(RTE_ETHER_TYPE_IPV6))){
+                    #ifdef DEBUG
                     if (unlikely(DEBUG)) {print_debug_mac(eth_hdr, "IP6");}
+                    #endif
                     drop(bufs_rx[pkt_id]);
                 }
                 /* Non identifié */
                 else {
+                    #ifdef DEBUG
                     if (unlikely(DEBUG)) {print_debug_mac(eth_hdr, "UKN");}
+                    #endif
                     drop(bufs_rx[pkt_id]);
                 }
             } /* Fin boucle sur les paquets du burst */
@@ -141,8 +147,10 @@ static __rte_noreturn void lcore_main(
 
 /* Point d'entrée, init. & args. */
 int main(int argc, char *argv[]){
+    #ifdef DEBUG
     /* On prévient de mode DEBUG : forte reduction des performances. */
     if (DEBUG) {printf("DEBUG mode: will very (very) verbose\n\n");}
+    #endif
 
     /* Initialise l'EAL et RTE */
     rte_init(&argc, &argv);
@@ -166,12 +174,22 @@ int main(int argc, char *argv[]){
     int nb_dst_blk = 0;                     // Nombre de règles blk dst
     rte_be32_t *deny_ip_src, *deny_ip_dst;  // Table de blocage
 
+    #ifdef DEBUG
     if (parse_config(filename, 
             &nb_src_blk, 
             &deny_ip_src, 
             &nb_dst_blk, 
             &deny_ip_dst, 
-            DEBUG) < 0){
+            DEBUG) < 0)
+    #else
+    if (parse_config(filename, 
+            &nb_src_blk, 
+            &deny_ip_src, 
+            &nb_dst_blk, 
+            &deny_ip_dst, 
+            0) < 0)
+    #endif
+    {
         printf("\nUnable to read config. file \"%s\".\n", filename);
         return -1;
     }

@@ -5,12 +5,14 @@
 #   -t      Ouvre un terminal sur la machine distante après la compilation
 #   -r      Utilise l'hôte remote (enregistré dans la configuration)
 #   -i      Précise le profil SSH à utiliser
+#   -d      Active le debug (très verbeux)
 
 
 ## Variables
 POSITIONAL_ARGS=()
 REMOTE=0
 TERMINAL=0
+DEBUG=0
 
 ### Profil SSH utilisé
 SSH_ID=dpdk-1
@@ -31,6 +33,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     -t|--terminal)
       TERMINAL=1
+      shift
+      ;;
+    -d|--debug)
+      DEBUG=1
       shift
       ;;
     -*|--*)
@@ -62,13 +68,22 @@ else
     echo "Using given SSH identity: $SSH_ID"; 
 fi
 
+if [ "$DEBUG" -eq "1" ]; then
+   echo "Debug mode. Very verbose.";
+fi
+
 echo ""
 
 ## Opérations
 ssh $SSH_ID -- rm -vfr src
 scp -r ../src $SSH_ID:
 ssh $SSH_ID -- "rm -vf src/remote_build.sh"
-ssh $SSH_ID -- "cd src && ls -alh && make && tree ."
+
+if [ "$DEBUG" -eq "1" ]; then
+   ssh $SSH_ID -- "cd src && ls -alh && make debug && tree ."
+else
+    ssh $SSH_ID -- "cd src && ls -alh && make && tree ."
+fi
 
 if [ "$TERMINAL" -eq "1" ]; then
     echo -e "\tPour lancer le programme :"
