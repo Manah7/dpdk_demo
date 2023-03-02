@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Usage :
-# ./remote_build.sh [-t] [-r] [-i ssh_config]
+# ./remote_build.sh [-t] [-r] [-d] [-i ssh_config]
 #   -t      Ouvre un terminal sur la machine distante après la compilation
 #   -r      Utilise l'hôte remote (enregistré dans la configuration)
 #   -i      Précise le profil SSH à utiliser

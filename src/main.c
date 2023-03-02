@@ -26,7 +26,7 @@
 
 
 /* Libère la mémoire d'un paquet donné */
-int drop(struct rte_mbuf * pkt){
+inline static int drop(struct rte_mbuf * pkt){
     rte_pktmbuf_free(pkt);
     #ifdef DEBUG
     if (unlikely(DEBUG)) {printf("\t...dropped...\n");}
@@ -82,6 +82,8 @@ static __rte_noreturn void lcore_main(
                 /* IPv4 */
                 else if (likely(eth_hdr->ether_type 
                         == rte_cpu_to_be_16(RTE_ETHER_TYPE_IPV4))){
+                    
+                    /* Paquet IPv4 */
                     struct rte_ipv4_hdr *ipv4_hdr = 
                         rte_pktmbuf_mtod_offset(bufs_rx[pkt_id], 
                         struct rte_ipv4_hdr *, 
@@ -92,27 +94,24 @@ static __rte_noreturn void lcore_main(
                     #endif
 
                     /* Filtrage du paquet IPv4 en fonction des tables. */
-                    int dropped = 0;
                     for (int i = 0; i < nb_src_blk; i++){
                         if (unlikely(ipv4_hdr->src_addr == deny_ip_src[i])){
-                            dropped = drop(bufs_rx[pkt_id]);
-                            break;
+                            drop(bufs_rx[pkt_id]);
+                            goto pkt_done; /* Sortie */
                         }
                     }
 
-                    // TODO : Ne pas filtrer si déjà bloqué
                     for (int i = 0; i < nb_dst_blk; i++){
                         if (unlikely(ipv4_hdr->dst_addr == deny_ip_dst[i])){
-                            dropped = drop(bufs_rx[pkt_id]);
-                            break;
+                            drop(bufs_rx[pkt_id]);
+                            goto pkt_done; /* Sortie */
                         }
                     }
 
                     /* On garde le paquet si non droppé */
-                    if (likely(!dropped)){
-                        bufs_tx[nb_rt] = bufs_rx[pkt_id];
-                        nb_rt++;
-                    }
+                    bufs_tx[nb_rt] = bufs_rx[pkt_id];
+                    nb_rt++;
+                    
                 } 
                 /* IPv6 */
                 else if (unlikely(eth_hdr->ether_type 
@@ -129,6 +128,9 @@ static __rte_noreturn void lcore_main(
                     #endif
                     drop(bufs_rx[pkt_id]);
                 }
+
+                /* Marqueur de sortie en cas de paquet drop. */
+                pkt_done:
             } /* Fin boucle sur les paquets du burst */
 
             /* Send burst of TX packets, to second port of pair. */

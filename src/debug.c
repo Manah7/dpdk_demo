@@ -36,7 +36,10 @@ void print_debug_mac(struct rte_ether_hdr *mac_hdr, char * type){
         debug_mac(mac_hdr->dst_addr));
 }
 
-void print_debug_ip(struct rte_ether_hdr *mac_hdr, struct rte_ipv4_hdr *ipv4_hdr){
+void print_debug_ip(
+        struct rte_ether_hdr *mac_hdr, 
+        struct rte_ipv4_hdr *ipv4_hdr)
+{
     printf(" [%lu][IP4] : %s --> %s (%s --> %s)\n",
         (unsigned long)time(NULL), 
         debug_mac(mac_hdr->src_addr), 
