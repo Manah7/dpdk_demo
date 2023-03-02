@@ -49,7 +49,7 @@ Puis côté hôte :
 start tx_first
 ```
 
-On doit alors voir un forward de paquet :
+On doit alors voir un forward de paquets :
 ```
 Port statistics ====================================
 Statistics for port 0 ------------------------------

@@ -6,7 +6,7 @@ Nous avons essayé de réaliser plusieurs bancs d'essais virtuels sous différen
 ### VMWare (Useless)
 **Cette section est obsolète, ayant à présent réussi à configurer les VM et le réseau. (Voir section Debug.)**
 
-Bien que le déploiement des VM et la mise en place des vSwitch a été facile, la configuration de DPDK des interfaces `vmxnet3` de VMWare n'a pas permit d'utiliser DPDK correctement, en particulier DPDK ne semblait pas recevoir certains paquets, malgré le mode promiscous du switch.
+Bien que le déploiement des VM et la mise en place des vSwitch ont été facile, la configuration de DPDK sur les interfaces `vmxnet3` de VMWare n'a pas permit d'utiliser DPDK correctement. En particulier DPDK ne semblait pas recevoir certains paquets, malgré le mode promiscous du switch.
 
 Commandes utilisées pour le debug :
 ```bash

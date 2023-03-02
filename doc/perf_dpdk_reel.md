@@ -1,9 +1,9 @@
 ## Performances de DPDK sur un banc d'essais réel
-La forme du banc d'essais est la même que pour la partie virtualisée. Plusieurs parametres ont été ajusté dans la situation réel, notamment au niveau du noyau Linux :
+La forme du banc d'essais est la même que pour la partie virtualisée. Plusieurs paramètres ont été ajustés dans la situation réel, notamment au niveau du noyau Linux :
 ```
 GRUB_CMDLINE_LINUX="iommu=pt intel_iommu=on default_hugepagesz=1G hugepagesz=1G hugepages=16 isolcpus=2,3 nohz_full=2,3 rcu_nocbs=2,3"
 ```
-C'est choix ont été fait à l'aide du [benchmark intel](https://fast.dpdk.org/doc/perf/DPDK_22_11_Intel_NIC_performance_report.pdf), mais ne semblent pas améliorer significativement les performances.
+Ces choix ont été faits à l'aide du [benchmark intel](https://fast.dpdk.org/doc/perf/DPDK_22_11_Intel_NIC_performance_report.pdf), mais ne semblent pas améliorer significativement les performances.
 
 ### Résultats
 

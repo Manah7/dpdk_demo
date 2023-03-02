@@ -1,7 +1,7 @@
 ## DPDK avec vhost-user
 Lien du tuto original : [https://www.redhat.com/en/blog/hands-vhost-user-warm-welcome-dpdk](https://www.redhat.com/en/blog/hands-vhost-user-warm-welcome-dpdk)
 
-Le tuto est largement adapté pour pouvoir utiliser Ubuntu 20.04 et prendre en compte les restrictions de paquet apparues depuis la plublication du tuto.
+Le tuto est largement adapté pour pouvoir utiliser Ubuntu 20.04 et prendre en compte les restrictions de paquet apparues depuis la publication du tuto.
 
 ### Création de la VM
 ```bash
@@ -14,7 +14,7 @@ export LIBVIRT_DEFAULT_URI="qemu:///system"
 sudo virt-sysprep --root-password password:test1 --uninstall cloud-init --selinux-relabel -a /var/lib/libvirt/images/vhuser-test1.qcow2 --network --install “dpdk,dpdk-tools,pciutils”
 ```
 
-Si KVM/qemu était déjà installé, il n'est pas nécessaire de créer le réseau par défault, on vérifie juste qu'il est là :
+Si KVM/qemu était déjà installé, il n'est pas nécessaire de créer le réseau par défaut, on vérifie juste qu'il soit là :
 ```bash
 virsh net-list
 ```
@@ -32,7 +32,7 @@ virsh shutdown vhuser-test1
 ```
 
 ### Préparation de l'hôte (Ubuntu 20.04)
-On modifie la cmdline du noyau Linux dans GRUB :
+On modifie la `cmdline` du noyau Linux dans GRUB :
 ```bash
 sudo nano /etc/default/grub
 sudo update-grub
@@ -50,7 +50,7 @@ On modifie aussi la configuration de qemu avec `user = "root"` dans `/etc/libvir
 ```bash
 virsh edit vhuser-test1
 ```
-Configuration complète obtenue, pour les instructions spécifique, voir le tutoriel original.
+Configuration complète obtenue, pour les instructions spécifiques voir le tutoriel original.
 ```xml
 <domain type='kvm'>
   <name>vhuser-test1</name>
@@ -226,7 +226,7 @@ modprobe vfio-pci
 /usr/share/dpdk/usertools/dpdk-devbind.py -b vfio-pci 0000:07:00.0 0000:08:00.0
 dpdk-devbind --status net
 ```
-**Attention**, les modifications ne sont pas persistantes
+**Attention**, les modifications ne sont pas persistantes.
 
 #### Génération du trafic
 Génération du trafic, setup hôte éteint.
