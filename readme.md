@@ -1,4 +1,23 @@
-# Projet long 
+<br />
+<p align="center">
+  <p align="center">
+    <strong>Filtrage haut débit avec DPDK</strong>
+    <br />
+    <a href="https://github.com/Manah7/dpdk_demo/releases"><strong>Voir les releases »</strong></a>
+    <br />
+    <br />
+        <a href="https://github.com/Manah7/dpdk_demo">
+    <img src="img/schema_virt_dpdk.png" alt="Logo" width="500">
+    </a>
+    <br />
+    <a href="rapport.pdf">Rapport</a>
+    ·
+    <a href="doc/">Documentation</a>
+    ·
+    <a href="mailto:todo">Contact</a>
+  </p>
+<br />
+
 Ce répertoire contient quelques tutos et configurations établies lors de notre projet long de Master SSIR. Ce répertoire n'est pas exhaustif du travail fournis, mais donne un aperçu des résultats obtenus. Pour plus de détails sur notre méthodologie et nos réalisations, merci de consulter le rapport du projet *(accès restreint)*.
 
 ## Configurations réalisées
