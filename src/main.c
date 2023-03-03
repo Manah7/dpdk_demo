@@ -45,15 +45,16 @@ static __rte_noreturn void lcore_main(
     /* Information sur le coeur de proc. utilisé. */
     printf("Core %u forwarding packets [Ctrl+C to quit]\n", rte_lcore_id());
 
-    /* Main work of application loop.*/
+    /* Boucle de travail. */
     uint16_t port;
+    uint16_t nb_rt;
     for (;;) {
         RTE_ETH_FOREACH_DEV(port) {
             struct rte_mbuf *bufs_tx[BURST_SIZE]; // Paquets émits (non filtrés)
             struct rte_mbuf *bufs_rx[BURST_SIZE]; // Paquets reçus
 
             /* Get burst of RX packets, from first port of pair. */
-            uint16_t nb_rt = 0;
+            nb_rt = 0;
             const uint16_t nb_rx = rte_eth_rx_burst(port, 0,
                     bufs_rx, BURST_SIZE);
 
@@ -121,7 +122,7 @@ static __rte_noreturn void lcore_main(
                     #endif
                     drop(bufs_rx[pkt_id]);
                 }
-                /* Non identifié */
+                /* Non géré - Voir rte_ether.h:291 */
                 else {
                     #ifdef DEBUG
                     if (unlikely(DEBUG)) {print_debug_mac(eth_hdr, "UKN");}
