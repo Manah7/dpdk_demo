@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # Usage :
-# ./remote_build.sh [-t] [-r] [-d] [-i ssh_config]
+# ./remote_build.sh [-h] [-t] [-r] [-d] [-i ssh_config]
 #   -t      Ouvre un terminal sur la machine distante après la compilation
 #   -r      Utilise l'hôte remote (enregistré dans la configuration)
 #   -i      Précise le profil SSH à utiliser
 #   -d      Active le debug (très verbeux)
+#   -h      Affiche l'aide
 
 
 ## Variables
@@ -38,6 +39,14 @@ while [[ $# -gt 0 ]]; do
     -d|--debug)
       DEBUG=1
       shift
+      ;;
+    -h)
+      echo -e "Usage : $0 [-h] [-t] [-r] [-d] [-i ssh_config]"
+      exit 0
+      ;;
+    --help)
+      head -n 9 $0 | tail -n 6
+      exit 0
       ;;
     -*|--*)
       echo "Parametre inconnu : $1"
@@ -80,7 +89,7 @@ scp -r ../src $SSH_ID:
 ssh $SSH_ID -- "rm -vf src/remote_build.sh"
 
 if [ "$DEBUG" -eq "1" ]; then
-   ssh $SSH_ID -- "cd src && ls -alh && make debug && tree ."
+    ssh $SSH_ID -- "cd src && ls -alh && make debug && tree ."
 else
     ssh $SSH_ID -- "cd src && ls -alh && make && tree ."
 fi

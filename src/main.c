@@ -132,6 +132,7 @@ static __rte_noreturn void lcore_main(
 
                 /* Marqueur de sortie en cas de paquet drop. */
                 pkt_done:
+                ;
             } /* Fin boucle sur les paquets du burst */
 
             /* Send burst of TX packets, to second port of pair. */

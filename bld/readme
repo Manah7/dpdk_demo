@@ -1,0 +1,3 @@
+Binaire du projet compilé en statique. Cela permet de tester rapidement le
+binaire sans résoudre les problèmes de dépendance de DPDK (nottament sur Ubuntu
+20.04.5 LTS).

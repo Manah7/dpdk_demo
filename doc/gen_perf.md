@@ -85,6 +85,9 @@ tar -xzvf latest && rm latest
 
 cd v[VERSION]
 
+# Si nécessaire :
+apt install python3-distutils python3 python3-pip python3-apt
+
 ./dpdk_setup_ports.py -s # Montre les ports disponibles
 ./dpdk_setup_ports.py -i # Génération intéractive de fichier de conf.
 ```
@@ -141,6 +144,164 @@ ixgbe_dev_start(): failure in ixgbe_dev_start(): -38
 EAL: Error - exiting with code: 1
   Cause: rte_eth_dev_start: err=-5, port=0
 ```
-Semble similaire à cette erreur, pas d esolution : https://github.com/cisco-system-traffic-generator/trex-core/issues/76
+Semble similaire à cette erreur, pas de solution : https://github.com/cisco-system-traffic-generator/trex-core/issues/76
+
+--> erreur 38 c'est "fonction non implémenté"
+
+Les cartes en question ne semble pas entièrement supportées par DPDK, j'ai de meilleur résultats avec d'autres cartes réseaux :
+```
+Network devices using DPDK-compatible driver
+============================================
+0000:04:00.0 'Ethernet 10G 2P X520 Adapter 154d' drv=igb_uio unused=
+0000:04:00.1 'Ethernet 10G 2P X520 Adapter 154d' drv=igb_uio unused=
+```
+```
+-Per port stats table 
+      ports |               0 |               1 
+ -----------------------------------------------------------------------------------------
+   opackets |             104 |             104 
+     obytes |            8008 |            9672 
+   ipackets |              25 |             104 
+     ibytes |            2325 |            8008 
+    ierrors |               0 |               0 
+    oerrors |               0 |               0 
+      Tx Bw |     609.69  bps |     736.38  bps 
+
+-Global stats enabled 
+ Cpu Utilization : 0.1  %
+ Platform_factor : 1.0  
+ Total-Tx        :       1.35 Kbps  
+ Total-Rx        :     609.69  bps  
+ Total-PPS       :       1.98  pps  
+ Total-CPS       :       0.99  cps  
+
+ Expected-PPS    :       2.00  pps  
+ Expected-CPS    :       1.00  cps  
+ Expected-BPS    :       1.36 Kbps  
+
+ Active-flows    :        0  Clients :      511   Socket-util : 0.0000 %    
+ Open-flows      :      104  Servers :      255   Socket :        8 Socket/Clients :  0.0 
+ drop-rate       :     736.38  bps   
+ current time    : 108.1 sec  
+ test duration   : 3491.9 sec
+```
+
+**Tentative de réinitialisation des PCI**
+On a un problème : on ne peut lancer testpmd qu'une fois avant un crash, tentative de fix :
+```bash
+echo "1" > /sys/bus/pci/devices/0000\:04\:00.0/remove 
+echo "1" > /sys/bus/pci/devices/0000\:04\:00.1/remove
+echo "1" > /sys/bus/pci/rescan
+devbind -s
+# ça ne fonctionne pas
+```
+
+### Performance du filtre
+Difficultées de fonctionnement sur les nouvelles cartes : 
+```
+root@r720b:~# ./filtre rules.cfg 
+EAL: Detected CPU lcores: 12
+EAL: Detected NUMA nodes: 1
+EAL: Detected static linkage of DPDK
+EAL: Multi-process socket /var/run/dpdk/rte/mp_socket
+EAL: Selected IOVA mode 'VA'
+EAL: VFIO support initialized
+EAL: Using IOMMU type 1 (Type 1)
+EAL: Ignore mapping IO port bar(2)
+EAL: Probe PCI driver: net_ixgbe (8086:10f1) device: 0000:04:00.0 (socket 0)
+eth_ixgbe_dev_init(): The EEPROM checksum is not valid: -2
+ethdev initialisation failed
+EAL: Releasing PCI mapped resource for 0000:04:00.0
+EAL: Calling pci_unmap_resource for 0000:04:00.0 at 0x1180000000
+EAL: Calling pci_unmap_resource for 0000:04:00.0 at 0x1180020000
+EAL: Calling pci_unmap_resource for 0000:04:00.0 at 0x1180060000
+EAL: Requested device 0000:04:00.0 cannot be used
+EAL: Using IOMMU type 1 (Type 1)
+EAL: Ignore mapping IO port bar(2)
+EAL: Probe PCI driver: net_ixgbe (8086:10f1) device: 0000:04:00.1 (socket 0)
+eth_ixgbe_dev_init(): The EEPROM checksum is not valid: -1
+ethdev initialisation failed
+EAL: Releasing PCI mapped resource for 0000:04:00.1
+EAL: Calling pci_unmap_resource for 0000:04:00.1 at 0x1180064000
+EAL: Calling pci_unmap_resource for 0000:04:00.1 at 0x1180084000
+EAL: Calling pci_unmap_resource for 0000:04:00.1 at 0x11800c4000
+EAL: Requested device 0000:04:00.1 cannot be used
+TELEMETRY: No legacy callbacks, legacy socket not created
+EAL: Error - exiting with code: 1
+  Cause: Error: number of ports must be even
+```
+--> **solution** : unbind et rebind les interfaces avec `devbind.py`
+
+**Premier test de performance avec un générateur DPDK réussi !**
+Sur dpdk-1 (filtre) :
+```
+# ./filtre rules.cfg 
+EAL: Detected CPU lcores: 12
+EAL: Detected NUMA nodes: 1
+EAL: Detected static linkage of DPDK
+EAL: Multi-process socket /var/run/dpdk/rte/mp_socket
+EAL: Selected IOVA mode 'VA'
+EAL: VFIO support initialized
+EAL: Using IOMMU type 1 (Type 1)
+EAL: Ignore mapping IO port bar(2)
+EAL: Probe PCI driver: net_ixgbe (8086:10f1) device: 0000:04:00.0 (socket 0)
+EAL: Ignore mapping IO port bar(2)
+EAL: Probe PCI driver: net_ixgbe (8086:10f1) device: 0000:04:00.1 (socket 0)
+TELEMETRY: No legacy callbacks, legacy socket not created
+ixgbe_dev_rx_queue_start(): Could not enable Rx Queue 0
+Port 0 MAC: 00 1b 21 6c e2 bb
+ixgbe_dev_rx_queue_start(): Could not enable Rx Queue 0
+Port 1 MAC: 00 1b 21 6c e2 ba
+
+WARNING: Too many lcores enabled. Only 1 used.
+EAL: Init. done.
+
+Un fichier de configuration donné : rules.cfg
+Règles lues depuis le fichier rules.cfg :
+
+-------------------------
+1 IPs bloquées en sources, 2 en destination.
+Liste des IP bloquées en sources :
+	244.174.221.178
+Liste des IP bloquées en destination :
+	192.168.0.3
+	192.168.0.4
+-------------------------
+
+Core 0 forwarding packets [Ctrl+C to quit]
+```
+On utilise ici le binaire statique à cause de problèmes de dépendance de DPDK.
+
+Sur dpdk-0 (on est en loopback):
+```
+-Per port stats table 
+      ports |               0 |               1 
+ -----------------------------------------------------------------------------------------
+   opackets |            1131 |            1131 
+     obytes |           87087 |          105183 
+   ipackets |            1131 |            1131 
+     ibytes |          105183 |           87087 
+    ierrors |               0 |               0 
+    oerrors |               0 |               0 
+      Tx Bw |     606.52  bps |     732.55  bps 
+
+-Global stats enabled 
+ Cpu Utilization : 0.1  %
+ Platform_factor : 1.0  
+ Total-Tx        :       1.34 Kbps  
+ Total-Rx        :       1.34 Kbps  
+ Total-PPS       :       1.97  pps  
+ Total-CPS       :       0.98  cps  
+
+ Expected-PPS    :       2.00  pps  
+ Expected-CPS    :       1.00  cps  
+ Expected-BPS    :       1.36 Kbps  
+
+ Active-flows    :        0  Clients :      511   Socket-util : 0.0000 %    
+ Open-flows      :     1131  Servers :      255   Socket :       11 Socket/Clients :  0.0 
+ drop-rate       :       0.00  bps   
+ current time    : 1135.0 sec  
+ test duration   : 2465.0 sec 
+```
 
 
