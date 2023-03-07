@@ -456,6 +456,12 @@ Exemple de sortie :
   </p>
 <br />
 
+#### Amélioration
+MTU : 1500
+donc :
+`start -f stl/bench.py -m 2 -t size=1518,vm=var1`
+
+
 #### Erreur courante
 Du côté du filtre, le bind des drivers est très aléatoire et un reset est souvent nécessaire entre deux run :
 ```
