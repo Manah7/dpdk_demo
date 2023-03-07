@@ -304,4 +304,26 @@ Sur dpdk-0 (on est en loopback):
  test duration   : 2465.0 sec 
 ```
 
+#### Utiliser t-rex plus efficacement
+Situation de loopback entre un serveur de test (tester) et le filtre DPDK.
+
+Console 1 (tester) :
+```bash
+cd /opt/trex/v3.02
+./t-rex-64 -i -c 2
+```
+Console 2 (tester) :
+```bash
+cd /opt/trex/v3.02
+./trex-console
+```
+Console T-Rex :
+```
+trex>start -f stl/bench.py -t size=64,vm=var1
+```
+
+Lancement du filtre DPDK :
+```bash
+./filtre rules.cfg
+```
 

@@ -1,9 +1,8 @@
 #!/bin/bash
 
 # Usage :
-# ./remote_build.sh [-h] [-t] [-r] [-d] [-i ssh_config]
+# ./remote_build.sh [-h] [-t] [-d] [-i ssh_config]
 #   -t      Ouvre un terminal sur la machine distante après la compilation
-#   -r      Utilise l'hôte remote (enregistré dans la configuration)
 #   -i      Précise le profil SSH à utiliser
 #   -d      Active le debug (très verbeux)
 #   -h      Affiche l'aide
@@ -11,13 +10,11 @@
 
 ## Variables
 POSITIONAL_ARGS=()
-REMOTE=0
 TERMINAL=0
 DEBUG=0
 
 ### Profil SSH utilisé
 SSH_ID=dpdk-1
-SSH_RT=remote-dpdk-1
 
 
 ## Arguments
@@ -26,10 +23,6 @@ while [[ $# -gt 0 ]]; do
     -i|--identity)
       ID="$2"
       shift
-      shift
-      ;;
-    -r|--remote)
-      REMOTE=1
       shift
       ;;
     -t|--terminal)
@@ -41,7 +34,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     -h)
-      echo -e "Usage : $0 [-h] [-t] [-r] [-d] [-i ssh_config]"
+      echo -e "Usage : $0 [-h] [-t] [-d] [-i ssh_config]"
       exit 0
       ;;
     --help)
@@ -60,11 +53,6 @@ while [[ $# -gt 0 ]]; do
 done
 
 set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
-
-if [ "$REMOTE" -eq "1" ]; then
-   echo "Remote build.";
-   SSH_ID=$SSH_RT
-fi
 
 if [ "$TERMINAL" -eq "1" ]; then
    echo "Opening terminal after build.";

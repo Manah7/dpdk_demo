@@ -11,11 +11,11 @@ ifneq ($(shell $(PKGCONF) --exists libdpdk && echo 0),0)
 $(error "no installation of DPDK found")
 endif
 
-all: shared
+all: static
 .PHONY: shared static
 
 debug: $(SRCS) Makefile $(PC_FILE) | build
-	$(CC) $(CFLAGS) -DDEBUG=1 $(SRCS) -o build/main $(LDFLAGS) $(LDFLAGS_SHARED)
+	$(CC) $(CFLAGS) -DDEBUG=1 $(SRCS) -o build/main-debug $(LDFLAGS) $(LDFLAGS_STATIC)
 
 shared: build/$(APP)-shared
 	ln -sf $(APP)-shared build/$(APP)
