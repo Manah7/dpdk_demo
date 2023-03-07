@@ -91,6 +91,14 @@ testpmd> show port stats all
   ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ```
 
+Exemple de sortie :
+
+<br />
+  <p align="center">
+    <img src="../img/screenshot_dpdk-fwd-Gbps-Proxmox.png" alt="Screenshot" width="800">
+  </p>
+<br />
+
 
 ### Performance avec iptables (sans DPDK)
 ```
